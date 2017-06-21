@@ -2,7 +2,7 @@
 Debug firmware for custom board based on Atmega32U4
 
 ## Parts
- - 0.96" LED display (SSD1306)
+ - 1.3" LED display (SH1106)
  - 6 push buttons
  - 1 WS2812b RGB LED
 

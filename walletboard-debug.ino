@@ -3,7 +3,8 @@
 #include "pins.h"
 
 // Initialize SSD1306 display
-U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST); // Fast I2C / TWI
+//U8GLIB_SSD1306_128X64 u8g(U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_NO_ACK | U8G_I2C_OPT_FAST); // Fast I2C / TWI
+U8GLIB_SH1106_128X64 u8g(U8G_I2C_OPT_DEV_0 | U8G_I2C_OPT_FAST); // Dev 0, Fast I2C / TWI
 
 // Initialize WS2812b
 Adafruit_NeoPixel pixel = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -11,16 +12,20 @@ Adafruit_NeoPixel pixel = Adafruit_NeoPixel(1, LED_PIN, NEO_GRB + NEO_KHZ800);
 void setup()   {
   analogReference(INTERNAL);
 
-  pinMode(BTN_UP, INPUT_PULLUP);
-  pinMode(BTN_RIGHT, INPUT_PULLUP);
-  pinMode(BTN_DOWN, INPUT_PULLUP);
-  pinMode(BTN_LEFT, INPUT_PULLUP);
+  pinMode(BTN_UP, INPUT);
+  pinMode(BTN_RIGHT, INPUT);
+  pinMode(BTN_DOWN, INPUT);
+  pinMode(BTN_LEFT, INPUT);
+  pinMode(BTN_EXTRA, INPUT);
+  pinMode(BTN_EXTRA2, INPUT);
 
   // Flip image on screen
   u8g.setRot180();
 
   // Set WS2812b to white color
-  pixel.setPixelColor(1, 0xFFFFFF);
+  pixel.begin();
+  //pixel.setPixelColor(0, 0xFFFFFF);
+  //pixel.show();
 }
 
 
@@ -31,12 +36,14 @@ void loop() {
   do {
     draw();
   } while ( u8g.nextPage() );
-  
+
 }
 
 // Main dwar loop
 void draw(void) {
-  //  u8g.setFont(u8g_font_helvR08);
+
+  pixelTick();
+
   u8g.setFont(u8g_font_6x13);
 
   // Button Extra 1
@@ -74,4 +81,81 @@ void draw(void) {
   char bufUsb[4];
   snprintf (bufUsb, 4, "%d", analogRead(ADC_USB));
   u8g.drawStr(52, 54, bufUsb);
+}
+
+
+char pixelMode = 0;
+unsigned char r = 0;
+unsigned char g = 0;
+unsigned char b = 0;
+void pixelTick() {
+
+  switch (pixelMode) {
+    case 0:
+      r++;
+      g = 0;
+      b = 0;
+      if (r == 255) {
+        pixelMode = 1;
+      }
+      break;
+    case 1:
+      r = 0;
+      g++;
+      b = 0;
+      if (g == 255) {
+        pixelMode = 2;
+      }
+      break;
+    case 2:
+      r = 0;
+      g = 0;
+      b++;
+      if (b == 255) {
+        pixelMode = 3;
+        b = 0;
+      }
+      break;
+    case 3:
+      r++;
+      g++;
+      b = 0;
+      if (r == 255) {
+        pixelMode = 5;
+        r = 0;
+        g = 0;
+      }
+      break;
+    case 5:
+      r++;
+      g = 0;
+      b++;
+      if (r == 255) {
+        pixelMode = 6;
+        r = 0;
+        b = 0;
+      }
+      break;
+    case 6:
+      r = 0;
+      g++;
+      b++;
+      if (g == 255) {
+        pixelMode = 7;
+        g = 0;
+        b = 0;
+      }
+      break;
+    case 7:
+      r++;
+      g++;
+      b++;
+      if (g == 255) {
+        pixelMode = 0;
+      }
+      break;
+  }
+
+  pixel.setPixelColor(0, pixel.Color(r, g, b));
+  pixel.show();
 }
